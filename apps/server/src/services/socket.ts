@@ -11,11 +11,12 @@
         public initListeners() {
             const io = this.io;
             console.log("Initialize socket listeners...")
-            
+
             io.on('connect', socket => {
                 console.log(`New Socket Connected: ${socket.id}`);
+                
                 socket.on("event:message", async ({ message }: { message: string}) => {
-                    console.log('New Message Rec.', message);
+                    console.log('New Message Received', message);
                 })
             })
         }
