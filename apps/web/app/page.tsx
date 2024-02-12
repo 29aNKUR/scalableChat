@@ -1,9 +1,25 @@
 'use client';
 
+import { useRef, useState } from "react";
+import { useSocket } from "../context/SocketProvider";
+import classes from "./page.module.css";
+
  const Page = () => {
-  return (
-    <h1>Hello</h1>
-  )
+
+  const { sendMessage } = useSocket();
+  const [message, setMessage] = useState('');
+  
+    return (
+      <div>
+        <div>
+          <h1>All Messges will appear here</h1>
+        </div>
+        <div>
+          <input onChange = {(e) => setMessage(e.target.value)} className={classes["chat-input"]} placeholder="Message..."/>
+          <button onClick = {() => sendMessage(message)} className={classes["button"]}>Send</button>
+        </div>
+      </div>
+      )
 }
 
 export default Page;

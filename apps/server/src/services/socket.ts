@@ -22,6 +22,8 @@
                 
                 socket.on("event:message", async ({ message }: { message: string}) => {
                     console.log('New Message Received', message);
+
+                    //publish this message to redis
                 })
             })
         }

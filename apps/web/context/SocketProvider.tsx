@@ -1,7 +1,7 @@
 //context should execute on client and not on server
 "use client" ;
-import React, { useCallback, useContext, useEffect } from "react"
-import { io } from "socket.io-client"
+import React, { useCallback, useContext, useEffect, useState } from "react"
+import { Socket, io } from "socket.io-client"
 interface SocketProviderProps {
     children?: React.ReactNode 
 }
@@ -12,19 +12,22 @@ interface ISocketContext {
 
 const SocketContext = React.createContext<ISocketContext | null>(null);
 
-const useSocket = () => {
+export const useSocket = () => {
     const state = useContext(SocketContext);
-    if (!state) throw new Error('State is Undefined');
-
+    if (!state) throw new Error(`State is Undefined`);
     return state;
 }
 
 //FC-functional component
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
+    const [socket, setSocket] = useState<Socket | undefined>();
 
     const sendMessage: ISocketContext['sendMessage'] = useCallback((msg) => {
         console.log("send msg", msg)
-    },[])
+        if(socket) {
+            socket.emit('event:message', {message: msg});
+        }
+    },[socket]);
 
 
     useEffect(() => {
@@ -35,8 +38,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
     },[])
 
+    const contextValue: ISocketContext = { sendMessage };
+
     return (
-        <SocketContext.Provider value={null}>
+        <SocketContext.Provider value={contextValue}>
             {children}
         </SocketContext.Provider>
     )
