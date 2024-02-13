@@ -1,36 +1,62 @@
-    import { Server } from "socket.io";
+import { Server } from "socket.io";
+import { Redis } from "ioredis";
 
-    class SocketService {
-        private _io: Server;
+const pub = new Redis({
+  host: "redis-2ca988c0-scalable-chat0.a.aivencloud.com",
+  port: 13164,
+  username: "default",
+  password: "AVNS_lucPH6dLiytRVYv0xfJ",
+});
+const sub = new Redis({
+  host: "redis-2ca988c0-scalable-chat0.a.aivencloud.com",
+  port: 13164,
+  username: "default",
+  password: "AVNS_lucPH6dLiytRVYv0xfJ",
+});
+class SocketService {
+  private _io: Server;
 
-        constructor(){
-            console.log("Init Socket Server...")
-            this._io = new Server({
-                cors: {
-                    allowedHeaders: ['*'],
-                    origin: '*',
-                }
-            });
-        }
+  constructor() {
+    console.log("Init Socket Server...");
+    this._io = new Server({
+      cors: {
+        allowedHeaders: ["*"],
+        origin: "*",
+      },
+    });
 
-        public initListeners() {
-            const io = this.io;
-            console.log("Initialize socket listeners...")
+    sub.subscribe("MESSAGES");
+  }
 
-            io.on('connect', socket => {
-                console.log(`New Socket Connected: ${socket.id}`);
-                
-                socket.on("event:message", async ({ message }: { message: string}) => {
-                    console.log('New Message Received', message);
+  public initListeners() {
+    const io = this.io;
+    console.log("Initialize socket listeners...");
 
-                    //publish this message to redis
-                })
-            })
-        }
+    io.on("connect", (socket) => {
+      console.log(`New Socket Connected: ${socket.id}`);
 
-        get io() {
-            return this._io;
-        }
+      socket.on("event:message", async ({ message }: { message: string }) => {
+        console.log("New Message Received", message);
+
+        //publish this message to redis
+        //sending message from socket server to redis
+        await pub.publish("MESSAGES", JSON.stringify({ message }));
+      });
+    });
+
+    
+  sub.on('message', async(channel, message) => {
+    if(channel === 'MESSAGES') {
+        console.log('new msg from redis', message)
+        io.emit('message',message);
     }
+  })
+  }
 
-    export default SocketService;
+
+  get io() {
+    return this._io;
+  }
+}
+
+export default SocketService;
